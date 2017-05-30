@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <svg width="960" height="800"></svg>
+  <title>d3.js stacked bar chart</title>
+ <script src="https://d3js.org/d3.v4.min.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var margin = {top: 20, right: 60, bottom: 35, left: 30};
+
+var width = 960 - margin.left - margin.right,
+    height = 800 - margin.top - margin.bottom;
+
+var svg = d3.select("body")
+  .append("svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+var formation = [
+{"WELL_NAME": "AUPINNACLE CREEK-01", "Back Creek Group - Reids Dome beds": 149, "Unknown": 58, "Minerva Hills Volcanics Formation": 86, "Back Creek Group - Reids Dome beds (1)": -1113, "Silver Hills Volcanics Formation": -49}
+];
+
+var age = [{"WELL_NAME": "AUPINNACLE CREEK-01", "Permian-Cisuralian-Sakmarian": 149, "Tertiary": 243, "Permian-Cisuralian-Sakmarian (1)": -1113, "Devonian-Upper": -49}
+];
+
+var lithology = [];
+
+//Building profile by AGE
+
+//Creating layers from data
+var age_layers = d3.stack()
+  .keys(["Permian-Cisuralian-Sakmarian", "Tertiary", "Permian-Cisuralian-Sakmarian (1)", "Devonian-Upper"])
+  .offset(d3.stackOffsetDiverging)
+  (age);
+
+//Creating SVgs
+var svg = d3.select("svg"),
+  margin = {top: 20, right: 30, bottom:30, left:20 }
+  width = +svg.attr("width"),
+  height = +svg.attr("height");
+
+//Defining x and y
+
+//Define x and y
+
+var x = d3.scaleBand()
+    .domain(age_layers.map(function(d) { return d.WELL_NAME; }))
+    .rangeRound([margin.left, width - margin.right])
+    .padding(0.1);
+
+var y = d3.scaleLinear()
+    .domain([d3.min(age_layers, stackMin), d3.max(age_layers, stackMax)])
+    .rangeRound([height - margin.bottom, margin.top]);
+//Define Age colours
+var za = d3.scaleOrdinal(d3.schemeCategory20);
+//Create SVG
+var svg_ages = svg.append("g")
+  .selectAll("g")
+  .data(age_layers)
+  .enter().append("g")
+    .attr("fill", function(d) {return za(d.key); })
+  .selectAll("rect")
+  .data(function(d) {return d;})
+  .enter()
+  .append("rect")
+  .attr("width", x.bandwidth)
+  .attr("x", function(d) {return x(d.data.WELL_NAME); })
+  .attr("y", function(d) {return y(d[1]); })
+  .attr("height", function(d) {return y(d[0]) - y(d[1]); })
+
+
+//Building profile by FORMATION
+//Creating layers from data
+var formation_layers = d3.stack()
+  .keys(["Back Creek Group - Reids Dome beds", "Unknown", "Minerva Hills Volcanics Formation", "Back Creek Group - Reids Dome beds (1)", "Silver Hills Volcanics Formation" ])
+  .offset(d3.stackOffsetDiverging)
+  (formation);
+
+// Creating Svgs
+var svg = d3.select("svg"),
+  margin = {top: 20, right: 30, bottom:30, left: 20 }
+  width = +svg.attr("width/2"),
+  height = +svg.attr("height");
+
+//Define x and y
+
+var x = d3.scaleBand()
+    .domain(formation_layers.map(function(d) { return d.WELL_NAME; }))
+    .rangeRound([109, width - margin.right])
+    .padding(0.1);
+
+var y = d3.scaleLinear()
+    .domain([d3.min(formation_layers, stackMin), d3.max(formation_layers, stackMax)])
+    .rangeRound([height - margin.bottom, margin.top]);
+//Define colors 
+var z = d3.scaleOrdinal(d3.schemeCategory10);
+//Create SVG
+var svg_formations = svg.append("g")
+  .selectAll("g")
+  .data(formation_layers)
+  .enter().append("g")
+    .attr("fill", function(d) {return z(d.key); })
+  .selectAll("rect")
+  .data(function(d) {return d;})
+  .enter()
+  .append("rect")
+  .attr("width", x.bandwidth)
+  .attr("x", function(d) {return x(d.data.WELL_NAME); })
+  .attr("y", function(d) {return y(d[1]); })
+  .attr("height", function(d) {return y(d[0]) - y(d[1]); })
+
+
+
+//Functions to find min and max
+function stackMin(serie) {
+  return d3.min(serie, function(d) { return d[0]; });
+}
+
+function stackMax(serie) {
+  return d3.max(serie, function(d) { return d[1]; });
+}
+
+</script>
+</body>
+</html>
